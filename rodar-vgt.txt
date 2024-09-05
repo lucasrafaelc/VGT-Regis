@@ -1,0 +1,21 @@
+1) Ativar o ambiente virtual
+    1.1 Entrar na pasta vgt
+    1.2 rodar source miniconda3/bin/activate
+    1.3 conda activate ambiente-vgt
+
+2) Rodar código
+    2.1) Entrar na pasta pdf-blocks
+    2.2) Executar o arquivo python multiple_inference02.py --root <pasta-com-os-pdfs> --output <pasta-saida-resultados> --xml <pasta-saida-xml>
+
+3) novas modificações - Higor
+    3.1) adicionei um parametro --xml no arquivo multiple_inference02, para definir onde salvar os arquivos .xml, já que 
+        a pasta raiz está sendo deletada após realizar a inferencia em um PDF
+    3.1a) adicionei um parametro --root no arquivo visualize_evaluation, para definir a pasta de entrada
+        para gerar as bounding box, ao invés de definir no código a pasta 
+    3.2) no momento, a parte do código que deleta a pasta raiz com os grids e pages está comentada pois
+        algumas inferencias não estão 100%, então mantive os arquivos para gerar o visualize_evaluation para os pdfs
+    3.3) o problema pode ser no OCR/pytesseract, os grids estão sendo criados corretamente (ao menos cria o visualize_evaluation)
+    3.4) aparentemente o pdfplumber (para nativos digitais) tá conseguindo gerar grids para alguns arquivos
+        escaneados, por exemplo a Ester-rib, o problema disso é que o mupdf não consegue extrair nada dos crops de texto
+    3.5) por enquanto, comentei a parte do código que utiliza pdfplumber+mupdf, e o algoritmo está extraindo utilizando
+        apenas o mmocr+pytesseract

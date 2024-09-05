@@ -1,0 +1,82 @@
+## Entrar na pasta home/vgt
+cd home/vgt/miniconda3/bin
+
+# Rodar o comando
+source activate
+
+# Comando para criar a env (não precisa rodar novamente)
+conda create -n env-vgt python=3.8.19
+
+# Ativar a env
+conda activate env-vgt
+
+# Clonar repositório do Anderson
+https://github.com/Andersonsr/pdf-blocks.git
+
+git lfs install
+
+cd pdf-blocks/ 
+git clone https://github.com/AlibabaResearch/AdvancedLiterateMachinery.git
+mv AdvancedLiterateMachinery/DocumentUnderstanding/VGT/ VGT/
+rm -r AdvancedLiterateMachinery/
+
+wget https://github.com/AlibabaResearch/AdvancedLiterateMachinery/releases/download/v1.3.0-VGT-release/doclaynet_VGT_model.pth
+mkdir -p weights/vgt
+mv doclaynet_VGT_model.pth weights/vgt
+
+git clone https://huggingface.co/microsoft/layoutlm-base-uncased
+
+
+## Instalação das Bibliotecas: (CUDA 12.1)
+Pytorch
+    conda install pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 pytorch-cuda=12.1 -c pytorch -c nvidia
+
+
+
+# Instalar o requirements.txt:
+timm==0.5.4
+Pillow==9.5
+blobfile==2.1.1
+mypy==1.11.0
+numpy==1.24.4
+pytest
+requests
+einops
+tensorboard
+scipy==1.10.1
+opencv-python==4.10.0.84
+Shapely==1.8.4
+pdf2image==1.17.0
+pytesseract==0.3.10
+mmocr
+pdfplumber==0.11.2
+transformers
+pandas
+nms==0.1.6
+tqdm
+lxml==4.9.4
+pymupdf==1.24.9
+munkres
+
+pip install -r requirements.txt
+
+
+# Editar o arquivo .bashrc (na pasta do seu usuário)
+vi .bashrc
+
+Add a seguinte linha ao final do arquivo:
+export PATH=/usr/local/cuda-12.1/bin${PATH:+:${PATH}}
+
+Instalar o detectron
+python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+
+Build MMOCR from source
+pip install -U openmim
+mim install mmcv==2.1
+mim install mmengine
+git clone https://github.com/open-mmlab/mmocr.git
+cd mmocr
+mim install -e .
+
+
