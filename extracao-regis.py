@@ -19,6 +19,7 @@ from labels import labels
 import warnings
 import shutil
 import time
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 ## isso aqui tira o erro de parallelism, agora realmente estava usando?
@@ -214,13 +215,31 @@ if __name__ == '__main__':
 
             # load or create xml for the current pdf
             
-            #TODO Colocar o nome certo no arquivo BR-TUxxxx.xml
-            arquivo_xml = 'output.xml'
+            arquivo_xml = os.path.basename(directory_path) + ".xml" # CRIA DINAMICAMENTE O NOME DO XML
             xml_path = os.path.join(directory_path, arquivo_xml)
             
+            
             if not os.path.exists(xml_path):
-                #TODO criar os elementos correspondentes ao xml da REGIS                
+                # cria os elementos correspondentes ao xml da REGIS                
                 root = etree.Element('document')
+
+                meta =etree.SubElement(root, 'metadata')
+                
+                docid = etree.SubElement(meta, 'field', name='docid')
+                doc_id = arquivo_xml.rpartition(".")[0]
+                docid.text = doc_id
+    
+                filename = etree.SubElement(meta, 'field', name='filename')
+                filename.text = pdf_name + '.pdf'
+    
+                filetype = etree.SubElement(meta, 'field', name='filetype')
+                filetype.text = 'PDF'
+
+                nativo_digital = etree.SubElement(meta, 'field', name='file_origin')
+                # nativo_digital.text = CODIGO BERNARDO
+    
+                num_paginas = etree.SubElement(meta, 'field', name='num_paginas')
+                # num_paginas.text = CODIGO BERNARDO
             else:
                 root = etree.parse(xml_path).getroot()
 
@@ -341,7 +360,7 @@ if __name__ == '__main__':
                 tree = etree.ElementTree(root)
                 etree.indent(tree, space="\t", level=0)
 
-                ## alerações
+                ## alterações
                 # Ordena os elementos dentro de cada página antes de salvar o XML
                 #TODO Revisar essa parte da ordenação 
                 for page in root.findall('page'):
