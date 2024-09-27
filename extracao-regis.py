@@ -203,16 +203,14 @@ if __name__ == '__main__':
     assert os.path.isdir(args.root), 'The root directory does not exist'
     assert 0 < int(args.batches) <= 25, 'Informe um batch válido entre 1 e 25'
     
-    #TODO Deletar o arquivo json do batch e pdfs na máquina local
-    # Deletar a pasta de arquivos
+    # Deletar o arquivo json do batch e pdfs na máquina local
     utils.delete_folder("input/")
     utils.delete_folder("output/")
     
     # Faz o login no ssh
     ssh_client = get_credenciais()
     
-    #TODO a variável arquivos deve receber uma lista com os nomes dos arquivos de batch do servidor    
-    #batches = ["batch_0.json"] #[f"batch_{i}.json" for i in range(10)]
+    # Requisita os batches no servidor
     request_batches(args.batches)
     
     with open("BatchFilePaths.txt", 'r', encoding="utf-8") as batch_file_paths:
@@ -224,11 +222,10 @@ if __name__ == '__main__':
         pass
     print(batches)
         
-    #for i in range(args.batches):
     for batch in batches:
         logger.info(f"==== INICIANDO A EXTRAÇÃO DA BATCH {batch} ====")
         
-        #TODO Obter um arquivo da batch do Geodigital
+        # Obter um arquivo da batch do Geodigital
         try:
             serverUtils.download_file(ssh_client, batch, "temp")
             nome_arquivo = batch.split("/")[-1]
@@ -236,10 +233,7 @@ if __name__ == '__main__':
         except Exception as e:
             logger.exception("ERRO AO BAIXAR O ARQUIVO DE BATCH")
             continue
-        finally:
-            pass
-
-
+        
         # Abre o arquivo com os metadados da batch
         print(f"temp/{nome_arquivo}")
         try:
@@ -257,7 +251,7 @@ if __name__ == '__main__':
             
             logger.info(f"Iniciando a extração do arquivo {encoded_name} -- {name}")
             
-            #TODO baixa o arquivo da variável path e salva em input
+            # Baixa o arquivo da variável path e salva em input
             try:
                 serverUtils.download_file(ssh_client, path, args.root)
                 nome_arquivo = path.split("/")[-1]
@@ -271,11 +265,7 @@ if __name__ == '__main__':
             pdfs = glob.glob(os.path.join(args.root, '*.pdf'))
             
             if not args.skip_preprocess:
-                # Step 0: pdf preprocessing
-                #print('pre-processing PDFs...')
-                
                 # Tenta extrair com o pdfplumber
-                #print("Gerando grids com o pdfplumber")
                 extrator = {}
                 for pdf_path in tqdm(pdfs):
                     pdf_to_images(pdf_path, args.dpi, args.output)
@@ -287,7 +277,7 @@ if __name__ == '__main__':
                     
                     if len(os.listdir(os.path.join(args.output, pdf_name, "grids"))) == 0:            
                         extrator[pdf_path] = "mmocr"
-                        #print("GERANDO GRIDS COM MMOCR")
+                
                         # Refaz a extração com o mmocr
                         pdf_name = os.path.basename(pdf_path).split('.pdf')[0]
                         for i, image in enumerate(glob.glob(os.path.join(args.output, pdf_name, 'pages', '*.png'))):
@@ -315,10 +305,9 @@ if __name__ == '__main__':
             for pdf_i, pdf in enumerate(pdfs):
                 pdf_name = os.path.basename(pdf).split('.pdf')[0]
                 images = glob.glob(os.path.join(args.output, pdf_name, 'pages', '*.*'))
+                
                 # sort by page number
                 images = sorted(images, key=lambda x: int(x.split('_')[-1].split('.')[0]))
-                #print(f'processing pdf {pdf_i + 1} out of {len(pdfs)} ')
-                #print(pdf_name)
                 
                 for i, image_path in enumerate(tqdm(images)):
                     img = cv2.imread(image_path)
@@ -328,12 +317,11 @@ if __name__ == '__main__':
 
                     # load or create xml for the current pdf
                     
-                    #TODO Colocar o nome certo no arquivo BR-TUxxxx.xml
                     arquivo_xml = encoded_name + ".xml" # CRIA DINAMICAMENTE O NOME DO XML
                     xml_path = os.path.join(directory_path, arquivo_xml)
                     
                     if not os.path.exists(xml_path):
-                        #TODO criar os elementos correspondentes ao xml da REGIS                
+                        # Cria os elementos correspondentes ao xml da REGIS                
                         root = etree.Element('document')
                         
                         meta =etree.SubElement(root, 'metadata')
@@ -393,8 +381,8 @@ if __name__ == '__main__':
                         assert len(output) == len(scores)
                         for j in range(len(output)):
                             score = scores[j].item()
-                            # defines the score limiar to save the text crop
                             
+                            # defines the score limiar to save the text crop
                             if score < args.threshold:
                                 continue
                             
@@ -468,6 +456,7 @@ if __name__ == '__main__':
                             
                             if element_text is not None:
                                 element_text = "".join(c for c in element_text if valid_xml_char_ordinal(c))
+                            
                             #TODO Verificar se é a melhor forma de tratar a extração de texto retornar vazio
                             item_element.text = element_text if element_text is not None else ''
                             page_element.append(item_element)
@@ -479,7 +468,6 @@ if __name__ == '__main__':
 
                         ## alerações
                         # Ordena os elementos dentro de cada página antes de salvar o XML
-                        #TODO Revisar essa parte da ordenação 
                         for page in root.findall('page'):
                             items = []
                             for item in page.findall('item'):
@@ -505,14 +493,14 @@ if __name__ == '__main__':
 
                         tree.write(xml_path, pretty_print=True, xml_declaration=True, encoding="UTF-8")
 
-                #TODO mandar o arquivo xml para o Geodigital
+                # Manda o arquivo xml para o Geodigital
                 try:
                     serverUtils.upload_file(ssh_client, xml_path, "/home/user_vgt/regis-ext")
                     logger.info("Enviei o arquivo xml para o servidor")
                 except Exception as e:
                     logger.exception("ERRO AO MANDAR O ARQUIVO XML")
                 
-                #TODO compactar a pasta de imagens e tabelas
+                # Compacta a pasta de imagens e tabelas
                 path_arquivo_zip = f"temp/{encoded_name}.zip"
                 with zipfile.ZipFile(path_arquivo_zip, "w") as zip_imagens_tabelas:
                     caminhos_imagens = [os.path.join(cropped_image_dir, nome) for nome in os.listdir(cropped_image_dir)]
@@ -525,26 +513,26 @@ if __name__ == '__main__':
                         nome_tabela = tabela.split('/')[-1].split("\\")[-1]
                         zip_imagens_tabelas.write(str(tabela), f"tables/{nome_tabela}")
                 
-                #TODO mandar o arquivo de imagens para o Geodigital
+                # Manda o arquivo de imagens para o Geodigital
                 try:
                     serverUtils.upload_file(ssh_client, path_arquivo_zip, "/home/user_vgt/regis-img")
                     logger.info("Enviei o arquivo de imagens para o servidor")
                 except Exception as e:
                     logger.exception("ERRO AO MANDAR O ARQUIVO COM AS IMAGENS")
                 
-                #TODO mandar o arquivo de logs
+                # Mandar o arquivo de logs
                 try:
                     serverUtils.upload_file(ssh_client, nome_logger, "/home/user_vgt/regis-logs")
                     logger.info("Enviei o arquivo de log para o servidor")
                 except Exception as e:
                     logger.exception("ERRO AO MANDAR O ARQUIVO DE LOGS")
                                         
-                #TODO Deletar o arquivo json do batch e pdfs na máquina local
+                # Deletar o arquivo json do batch e pdfs na máquina local
                 # Deletar a pasta de arquivos
                 utils.delete_folder("input/")
                 utils.delete_folder("output/")
                            
-    #utils.delete_folder("temp/")
+    utils.delete_folder("temp/")
     print("Deletei a pasta temp")
     end_timing = time.time()
     logger.info(f"Tempo de execução: {end_timing - start_timing}")
