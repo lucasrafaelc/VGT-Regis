@@ -41,12 +41,10 @@ def non_maximum_suppression(output, iou_threshold=0.3):
     }
     return Instances(output.image_size, **data), data['scores']
 
-
 if __name__ == '__main__':
-    output_path = 'outputs/annos_de_prosa_page198/outputs/page_0.pkl'
-    print(pickle.load(open(output_path, 'rb')))
+    output_path = 'outputs/pdfs/multfig/AAPG Memoir 77_Colour Guide to the Petrography of Carbonate Rocks_Schole & Schole_2003/page_15.pkl'
     output = non_maximum_suppression(pickle.load(open(output_path, 'rb')))
-    img = cv2.imread('outputs/annos_de_prosa_page198/pages/page_0.png')
+    img = cv2.imread('images/pdfs/multfig/AAPG Memoir 77_Colour Guide to the Petrography of Carbonate Rocks_Schole & Schole_2003/page_15.png')
 
     cfg = get_cfg()
     add_vit_config(cfg)
@@ -61,4 +59,4 @@ if __name__ == '__main__':
 
     result_image = v.draw_instance_predictions(output.to("cpu"))
     result_image = result_image.get_image()[:, :, ::-1]
-    cv2.imwrite('outputs/nms.png', result_image)
+    cv2.imwrite('nms.png', result_image)

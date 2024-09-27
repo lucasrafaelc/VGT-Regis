@@ -66,25 +66,31 @@ if __name__ == '__main__':
     cfg = get_cfg()
     add_vit_config(cfg)
     cfg.merge_from_file('configs/cascade/doclaynet_VGT_cascade_PTM.yaml')
-    files = glob.glob('result/teste/20725-1225-16699-1-10-20220719/pages/*')
-    dataset = 'doclaynet'
-    interesting_label = ''
+    
+    pasta = 'result/test/'
+    caminhos = [os.path.join(pasta, nome) for nome in os.listdir(pasta)]
+    
+    for caminho in caminhos:
+        #files = glob.glob('result/teste/20725-1225-16699-1-10-20220719/pages/*')
+        files = glob.glob(os.path.join(caminho, "pages/*"))
+        dataset = 'doclaynet'
+        interesting_label = ''
 
-    img_classes = {
-        'doclaynet': 'Picture',
-        'publaynet': 'figure',
-        'D4LA': 'Figure',
-        'dockbank': 'figure'
-    }
-    txt_classes = {
-        'doclaynet': 'Text',
-        'publaynet': 'text'
-    }
+        img_classes = {
+            'doclaynet': 'Picture',
+            'publaynet': 'figure',
+            'D4LA': 'Figure',
+            'dockbank': 'figure'
+        }
+        txt_classes = {
+            'doclaynet': 'Text',
+            'publaynet': 'text'
+        }
 
-    print('processing...')
-    for path in tqdm(files, total=len(files)):
-        save_result(path, cfg, labels[dataset], 0.2)
+        print(f'processing: {caminho}')
+        for path in tqdm(files, total=len(files)):
+            save_result(path, cfg, labels[dataset], 0.2)
     print('Done!')
-
+    
 
 

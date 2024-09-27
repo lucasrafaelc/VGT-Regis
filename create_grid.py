@@ -20,6 +20,7 @@ def return_word_grid(pdf_path):
     List
         Returns a list of shape (num_pages, num_words, 8)
     """
+    print("----->", pdf_path)
     pdf = pdfplumber.open(pdf_path)
 
     word_data = list()

@@ -59,6 +59,16 @@ def pdf_to_grids(filename, tokenizer, experiment):
                 pickle.dump(grid, file)
 
 
+def valid_xml_char_ordinal(c):
+    codepoint = ord(c)
+    # conditions ordered by presumed frequency
+    return (
+        0x20 <= codepoint <= 0xD7FF or
+        codepoint in (0x9, 0xA, 0xD) or
+        0xE000 <= codepoint <= 0xFFFD or
+        0x10000 <= codepoint <= 0x10FFFF
+        )
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='script to run VGT on pdf')
     parser.add_argument('--root',
@@ -95,7 +105,7 @@ if __name__ == '__main__':
                         '-o',
                         help='output folder name',
                         type=str,
-                        default='output/')
+                        default='result/test')
 
     parser.add_argument('--grid',
                         help='tool used for creating grids: pdfplumber or mmocr',
@@ -131,6 +141,7 @@ if __name__ == '__main__':
     if not args.skip_preprocess:
         # Step 0: pdf preprocessing
         print('pre-processing PDFs...')
+        '''
         if args.grid == 'pdfplumber':
             for pdf_path in tqdm(pdfs):
                 pdf_to_images(pdf_path, args.dpi, args.output)
@@ -143,7 +154,35 @@ if __name__ == '__main__':
                 pdf_name = os.path.basename(pdf_path).split('.pdf')[0]
                 for i, image in enumerate(glob.glob(os.path.join(args.output, pdf_name, 'pages', '*.png'))):
                     image_to_grids(image, args.tokenizer, infer)
-
+        '''
+        # Tenta extrair com o pdfplumber
+        print("Gerando grids com o pdfplumber")
+        extrator = {}
+        for pdf_path in tqdm(pdfs):
+            print("*" * 100)
+            print(pdf_path)
+            pdf_to_images(pdf_path, args.dpi, args.output)
+            pdf_to_grids(pdf_path, args.tokenizer, args.output)
+            extrator[pdf_path] = "plumber"
+        
+            pdf_name = pdf_path.split('.pdf')[0]
+            pdf_name = pdf_name.split("/")[1]
+            print("GRIDS GERADOS:")
+            print(os.listdir(os.path.join(args.output, pdf_name, "grids")))
+            if len(os.listdir(os.path.join(args.output, pdf_name, "grids"))) == 0:
+                extrator[pdf_path] = "mmocr"
+                print("GERANDO GRIDS COM MMOCR")
+                # Refaz a extração com o mmocr
+                infer = MMOCRInferencer(det='dbnetpp', rec='svtr-small')
+                for pdf_path in tqdm(pdfs):
+                    pdf_to_images(pdf_path, args.dpi, args.output)
+                    pdf_name = os.path.basename(pdf_path).split('.pdf')[0]
+                    for i, image in enumerate(glob.glob(os.path.join(args.output, pdf_name, 'pages', '*.png'))):
+                        image_to_grids(image, args.tokenizer, infer)
+            else:
+                print("NÃO VOU GERAR COM MMOCR!")
+    
+    print(extrator)
     assert not args.preprocess_only, 'skipping inference'
 
     # Step 1: instantiate config
@@ -244,19 +283,28 @@ if __name__ == '__main__':
 
                         # [x1, y1, x2, y2]
                         bbox = [x1/w, y1/h, x2/w, y2/h]
-
+                        '''
                         if args.ocr == 'mupdf':
                             element_text = extract_text(pdf, int(page.split('_')[-1]), bbox, args.expand)
 
                         elif args.ocr == 'tesseract':
-                            element_text = pytesseract.image_to_string(crop_path, lang='eng+por')
+                            element_text = pytesseract.image_to_string(crop_path)
 
                         # try direct extraction from PDF if empty use tesseract OCR
                         elif args.ocr == 'auto':
                             element_text = extract_text(pdf, int(page.split('_')[-1]), bbox)
                             if element_text == '':
-                                element_text = pytesseract.image_to_string(crop_path, lang='eng+por')
-
+                                element_text = pytesseract.image_to_string(crop_path)
+                        '''
+                        if extrator[pdf] == "plumber":
+                            # mupdf
+                            print(pdf, "sendo extraido com o mupdf")
+                            element_text = extract_text(pdf, int(page.split('_')[-1]), bbox, args.expand)
+                        elif extrator[pdf] == "mmocr":
+                            # tesseract
+                            print(pdf, "sendo extraido com o tesseract")
+                            element_text = pytesseract.image_to_string(crop_path)
+                            
                         box_type = 'text'
                         sub_type = labels[args.dataset][output[j].pred_classes.item()]
 
@@ -269,12 +317,14 @@ if __name__ == '__main__':
                                                  y0=str(y1),
                                                  x1=str(x2),
                                                  y1=str(y2),)
-
+                    
+                    if element_text is not None:
+                        element_text = "".join(c for c in element_text if valid_xml_char_ordinal(c))
                     item_element.text = element_text if element_text is not None else ''
                     page_element.append(item_element)
 
                 # save xml
                 root.append(page_element)
                 tree = etree.ElementTree(root)
-                tree.write(xml_path, pretty_print=True, xml_declaration=True, encoding="UTF-8")
-
+                tree.write(xml_path, pretty_print=True, xml_declaration=True)
+   
