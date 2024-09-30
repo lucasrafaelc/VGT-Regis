@@ -122,6 +122,17 @@ def get_credenciais():
         
 if __name__ == '__main__':
     
+    # Cria as pastas da aplicação
+    if not os.path.exists("input"):
+        os.mkdir("input")
+        
+    if not os.path.exists("output"):
+        os.mkdir("output")
+    
+    if not os.path.exists("temp"):
+        os.mkdir("temp")
+    
+    
     nome_logger = testes = "temp/" + datetime.now().strftime("%d%m%y%H%M%S") + ".log"
     logger = logging.getLogger(__name__)
     logging.basicConfig(filename=nome_logger, level=logging.INFO, format="{asctime} - {levelname} - {message}", style="{")
