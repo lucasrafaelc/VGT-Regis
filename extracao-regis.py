@@ -222,7 +222,7 @@ if __name__ == '__main__':
     ssh_client = get_credenciais()
     
     # Requisita os batches no servidor
-    request_batches(args.batches)
+    #request_batches(args.batches)  =>Descomentar depois
     
     with open("BatchFilePaths.txt", 'r', encoding="utf-8") as batch_file_paths:
         batches = batch_file_paths.readlines()
@@ -388,6 +388,7 @@ if __name__ == '__main__':
                             output, scores = non_maximum_suppression(output, 0.3)
                         except Exception as e:
                             logger.exception("ERRO NA FUNÇÃO non_maximum_suppression")
+                            continue
                             
                         assert len(output) == len(scores)
                         for j in range(len(output)):
