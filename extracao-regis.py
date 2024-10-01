@@ -222,7 +222,7 @@ if __name__ == '__main__':
     ssh_client = get_credenciais()
     
     # Requisita os batches no servidor
-    request_batches(args.batches)  
+    #request_batches(args.batches)  =>Descomentar depois
     
     with open("BatchFilePaths.txt", 'r', encoding="utf-8") as batch_file_paths:
         batches = batch_file_paths.readlines()
@@ -252,6 +252,7 @@ if __name__ == '__main__':
                 dados_batch = json.load(arq_batch)
         except Exception as e:
             logger.exception("ERRO ABRIR O ARQUIVO DA BATCH")
+            continue
             
         for pdf in dados_batch['pdfs']:        
             path = "/" + pdf["path"]
@@ -269,6 +270,7 @@ if __name__ == '__main__':
                 logger.info(f"Arquivo {nome_arquivo} baixado com sucesso do servidor")
             except Exception as e:
                 logger.exception("ERRO AO BAIXAR O ARQUIVO DO SERVIDOR")
+                continue
             finally:
                 pass
               
@@ -511,6 +513,7 @@ if __name__ == '__main__':
                     logger.info("Enviei o arquivo xml para o servidor")
                 except Exception as e:
                     logger.exception("ERRO AO MANDAR O ARQUIVO XML")
+                    continue
                 
                 # Compacta a pasta de imagens e tabelas
                 path_arquivo_zip = f"temp/{encoded_name}.zip"
