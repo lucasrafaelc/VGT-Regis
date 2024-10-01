@@ -1,25 +1,27 @@
 #!/bin/bash
-
+ 
 # Set variables
 ServerUser="user_vgt"
+ServerPasswd="#9VGT_User9#"
 ServerIP="geodigital.inf.ufrgs.br"
 ServerScriptPath="batch_manager.sh"
 NumBatches="$1"  # Get the first argument passed to the script
 BatchPathsFile="BatchFilePaths.txt"
-
+ 
 # Check if the number of batches is provided
 if [ -z "$NumBatches" ]; then
     echo "Please provide the number of batches to request."
     exit 1
 fi
-
+ 
 # Step 1: Retrieve the batch files from the server, but don't move them yet
 echo "Requesting $NumBatches batches from the server..."
-BatchFiles=$(ssh "$ServerUser@$ServerIP" "bash $ServerScriptPath $NumBatches")
-
+#BatchFiles=$(ssh "$ServerUser@$ServerIP" "bash $ServerScriptPath $NumBatches")
+BatchFiles=$(sshpass -p "$ServerPasswd" ssh "$ServerUser@$ServerIP" "bash $ServerScriptPath $NumBatches")
+ 
 # Save the list of batch files into an array
 IFS=$'\n' read -rd '' -a BatchFilesArray <<< "$BatchFiles"
-
+ 
 # Step 2: Save the paths to the batch files instead of downloading them
 echo "Saving the paths of the batch files..."
 for BatchFile in "${BatchFilesArray[@]}"; do
@@ -27,10 +29,10 @@ for BatchFile in "${BatchFilesArray[@]}"; do
     if [ -n "$BatchFile" ]; then
         BatchFilePath="processed_batches/$BatchFile"
         echo "Saving path: $BatchFilePath"
-        
+ 
         # Save the path to a file
         echo "$BatchFilePath" >> "$BatchPathsFile"
     fi
 done
-
+ 
 echo "Paths saved to $BatchPathsFile."
