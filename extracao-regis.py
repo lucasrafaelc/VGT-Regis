@@ -222,7 +222,7 @@ if __name__ == '__main__':
     ssh_client = get_credenciais()
     
     # Requisita os batches no servidor
-    #request_batches(args.batches)  =>Descomentar depois
+    request_batches(args.batches)  
     
     with open("BatchFilePaths.txt", 'r', encoding="utf-8") as batch_file_paths:
         batches = batch_file_paths.readlines()
