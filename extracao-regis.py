@@ -43,13 +43,13 @@ def request_batches(num_batches):
         
         # Print the output of the script (batch files downloaded)
         print(f"Script output: {result.stdout}")
-        
+        return True
     except subprocess.CalledProcessError as e:
         # Handle errors in script execution
         logger.exception("ERRO AO REQUISITAR O ARQUIVO DE BATCHES NO SERVIDOR")
         print(f"Error running script: {e}")
         print(f"Script stderr: {e.stderr}")
-        
+        return False
 
 ## funções para transformar o pdf em imagem, e imagem para grid
 def pdf_to_images(filename, dpi, experiment):
@@ -222,7 +222,9 @@ if __name__ == '__main__':
     ssh_client = get_credenciais()
     
     # Requisita os batches no servidor
-    #request_batches(args.batches)  =>Descomentar depois
+    while not request_batches(args.batches):
+        time.sleep(1)
+        print("Aguardando um batch...")
     
     with open("BatchFilePaths.txt", 'r', encoding="utf-8") as batch_file_paths:
         batches = batch_file_paths.readlines()
