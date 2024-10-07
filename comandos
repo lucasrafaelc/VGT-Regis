@@ -1,9 +1,8 @@
-docker import container-vgt.tar
-docker load -i imagem-vgt.tar
+docker import container-vgt.tar vgtregis
 
-
-docker run --gpus all -it <id> bash
-docker run --gpus all -it --entrypoint bash vgtregis
+docker run --gpus all -it --name vgt --entrypoint /bin/bash -w /usr/src/app/VGT-Regis vgtregis
+docker start vgt
+docker exec -t vgt bash
 
 apt-get update
 apt-get install libleptonica-dev tesseract-ocr libtesseract-dev python3-pil tesseract-ocr-eng tesseract-ocr-script-latn
