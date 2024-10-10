@@ -5,4 +5,4 @@ docker start vgt
 docker exec -t vgt bash
 
 apt-get update
-apt-get install libleptonica-dev tesseract-ocr libtesseract-dev python3-pil tesseract-ocr-eng tesseract-ocr-script-latn
+apt-get install libleptonica-dev tesseract-ocr libtesseract-dev python3-pil tesseract-ocr-eng tesseract-ocr-script-latn tesseract-ocr-por
